@@ -11,12 +11,12 @@ OBJECTS  := $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 LIBMRUBY  = ./lib/picoruby/build/host/lib/libmruby.a
 LIBFATFS  = ./lib/ff14b/build/lib/libfatfs.a
 LIB_DIRS  = $(dir $(LIBMRUBY)) $(dir $(LIBFATFS))
-LIB_PARAM = $(foreach d, $(LIB_DIRS), -L$d)
+LIBFLAG   = $(foreach d, $(LIB_DIRS), -L$d)
 
 INC_DIRS  = ./lib/picoruby/build/repos/host/mruby-mrubyc/repos/mrubyc/src \
             ./lib/picoruby/build/repos/host/mruby-pico-compiler/include\
             ./lib/ff14b/source
-INC_PARAM = $(foreach d, $(INC_DIRS), -I$d)
+INCFLAG   = $(foreach d, $(INC_DIRS), -I$d)
 
 RUBY_DIR  = $(SRC_DIR)/ruby/os
 MRB_DIR   = $(BUILD_DIR)/mrb
@@ -32,20 +32,18 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS) $(LIBMRUBY) $(LIBFATFS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIB_PARAM) -lmruby -lfatfs
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBFLAG) -lmruby -lfatfs
 
 $(LIBMRUBY): FORCE
 	cd lib/picoruby && rake
-FORCE:
 
 $(LIBFATFS): FORCE
 	cd lib/ff14b && make
-FORCE:
 
 # OBJECTS
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(MRB)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -DMRBC_USE_HAL_POSIX $(INC_PARAM) -c $< -o $@
+	$(CC) $(CFLAGS) -DMRBC_USE_HAL_POSIX $(INCFLAG) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 # MRB
@@ -62,4 +60,9 @@ clean:
 
 deep_clean:
 	cd lib/picoruby && rake clean
+	cd lib/ff14b && make clean
 	make clean
+
+FORCE:
+
+.PHONY: all clean FORCE

@@ -1,13 +1,13 @@
-CC       = gcc
-AR       = ar
-CFLAGS  += -O3 -Wall -Wpointer-arith -g
-SRC_DIR  = source
-BUILD_DIR = build
-OBJ_DIR  = $(BUILD_DIR)/obj
-LDFLAGS +=
-SOURCES := $(wildcard $(SRC_DIR)/*.c)
-OBJECTS := $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-TARGET   = $(BUILD_DIR)/lib/libfatfs.a
+CC         = gcc
+AR         = ar
+CFLAGS    += -O3 -Wall -Wpointer-arith -g
+SRC_DIR    = source
+BUILD_DIR  = build
+OBJ_DIR    = $(BUILD_DIR)/obj
+LDFLAGS   +=
+SOURCES   := $(wildcard $(SRC_DIR)/*.c)
+OBJECTS   := $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+TARGET     = $(BUILD_DIR)/lib/libfatfs.a
 
 all: $(TARGET)
 
