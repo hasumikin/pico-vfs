@@ -1,0 +1,3 @@
+obj/*.o
+dst/libfatfs.a
+tags
