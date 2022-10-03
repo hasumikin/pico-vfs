@@ -34,7 +34,7 @@ class OS
       # bool
     end
 
-    def each_line(rs = $/, chomp: false, &block)
+    def each_line#(rs = $/, chomp: false, &block)
       # self
     end
 
