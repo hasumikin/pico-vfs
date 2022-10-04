@@ -1,6 +1,6 @@
 CC        = gcc
 AR        = ar
-CFLAGS   += -O3 -Wall -Wpointer-arith -g
+CFLAGS   += -g3 -O0 -Wall -Wpointer-arith -g
 SRC_DIR   = src
 BUILD_DIR = build
 OBJ_DIR   = $(BUILD_DIR)/obj
