@@ -29,5 +29,15 @@ class OS
         # 0
       end
     end
+
+    def each(&block)
+      while true do
+        if filename = self._f_readdir("/")
+          block.call(filename)
+        else
+          break
+        end
+      end
+    end
   end
 end

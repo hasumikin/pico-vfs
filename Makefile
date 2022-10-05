@@ -1,11 +1,11 @@
 CC        = gcc
 AR        = ar
-CFLAGS   += -g3 -O0 -Wall -Wpointer-arith -g
+CFLAGS   += -g3 -O0 -Wall -Wpointer-arith
 SRC_DIR   = src
 BUILD_DIR = build
 OBJ_DIR   = $(BUILD_DIR)/obj
 LDFLAGS  +=
-SOURCES  := $(wildcard $(SRC_DIR)/*.c)
+SOURCES  := $(wildcard $(SRC_DIR)/**/*.c) $(SRC_DIR)/main.c
 OBJECTS  := $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 LIBMRUBY  = ./lib/picoruby/build/host/lib/libmruby.a
@@ -30,9 +30,16 @@ TARGET    = $(BUILD_DIR)/bin/main
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS) $(LIBMRUBY) $(LIBFATFS)
+$(TARGET): build/mrb/app.c $(OBJECTS) $(LIBMRUBY) $(LIBFATFS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBFLAG) -lmruby -lfatfs
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBFLAG) -lmruby -lfatfs -lm
+	@echo "Finished"
+	@echo
+
+build/mrb/app.c: src/app.rb
+	@mkdir -p $(dir $@)
+	$(PICORBC) -Bapp -o build/mrb/app.c src/app.rb
+	@echo "Compiled "$<" successfully!"
 
 $(LIBMRUBY): FORCE
 	cd lib/picoruby && rake
@@ -43,7 +50,7 @@ $(LIBFATFS): FORCE
 # OBJECTS
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(MRB)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -DMRBC_USE_HAL_POSIX $(INCFLAG) -c $< -o $@
+	$(CC) $(CFLAGS) -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1 $(INCFLAG) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 # MRB
@@ -65,4 +72,3 @@ deep_clean:
 
 FORCE:
 
-.PHONY: all clean FORCE
