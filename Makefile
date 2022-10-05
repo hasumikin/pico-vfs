@@ -30,7 +30,7 @@ TARGET    = $(BUILD_DIR)/bin/main
 
 all: $(TARGET)
 
-$(TARGET): build/mrb/app.c $(OBJECTS) $(LIBMRUBY) $(LIBFATFS)
+$(TARGET): $(OBJECTS) build/mrb/app.c $(LIBMRUBY) $(LIBFATFS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBFLAG) -lmruby -lfatfs -lm
 	@echo "Finished"
@@ -50,7 +50,7 @@ $(LIBFATFS): FORCE
 # OBJECTS
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(MRB)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1 $(INCFLAG) -c $< -o $@
+	$(CC) $(CFLAGS) -DMRBC_ALLOC_LIBC=1 -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1 $(INCFLAG) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 # MRB

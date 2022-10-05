@@ -1,7 +1,9 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <mrubyc.h>
+#include <alloc.h>
 #include <picorbc.h>
 #include <ff.h>
 
@@ -17,6 +19,24 @@
 
 static uint8_t heap_pool[HEAP_SIZE];
 
+bool
+load_model(const uint8_t *mrb)
+{
+  mrbc_vm *vm = mrbc_vm_open(NULL);
+  if( vm == 0 ) {
+    console_printf("Error: Can't open VM.\n");
+    return false;
+  }
+  if( mrbc_load_mrb(vm, mrb) != 0 ) {
+    console_printf("Error: Illegal bytecode.\n");
+    return false;
+  }
+  mrbc_vm_begin(vm);
+  mrbc_vm_run(vm);
+  mrbc_raw_free(vm);
+  return true;
+}
+
 int
 main(void)
 {
@@ -25,7 +45,7 @@ main(void)
 
   mrbc_init(heap_pool, HEAP_SIZE);
   mrbc_init_class_Dir();
-  mrbc_create_task(dir, 0);
+  load_model(dir);
   mrbc_create_task(app, 0);
   mrbc_run();
   return 0;

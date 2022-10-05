@@ -39,5 +39,10 @@ class OS
         end
       end
     end
+
+    def rewind
+      self._f_rewinddir
+      self
+    end
   end
 end

@@ -48,21 +48,6 @@ c_Dir_close(struct VM *vm, mrbc_value v[], int argc)
 }
 
 static void
-c_Dir_pos(struct VM *vm, mrbc_value v[], int argc)
-{
-  DIR *dp = (DIR *)v->instance->data;
-  SET_INT_RETURN(dp->dptr);
-}
-
-static void
-c_Dir_pos_eq(struct VM *vm, mrbc_value v[], int argc)
-{
-  DIR *dp = (DIR *)v->instance->data;
-  dp->dptr = GET_INT_ARG(1);
-  SET_RETURN(v[0]);
-}
-
-static void
 c_Dir__f_readdir(struct VM *vm, mrbc_value v[], int argc)
 {
   DIR *dp = (DIR *)v->instance->data;
@@ -77,6 +62,13 @@ c_Dir__f_readdir(struct VM *vm, mrbc_value v[], int argc)
   }
 }
 
+static void
+c_Dir__f_rewinddir(struct VM *vm, mrbc_value v[], int argc)
+{
+  DIR *dp = (DIR *)v->instance->data;
+  f_rewinddir(dp);
+}
+
 void
 mrbc_init_class_Dir(void)
 {
@@ -84,8 +76,7 @@ mrbc_init_class_Dir(void)
 
   mrbc_define_method(0, Dir_class, "new",        c_Dir_new);
   mrbc_define_method(0, Dir_class, "close",      c_Dir_close);
-  mrbc_define_method(0, Dir_class, "pos",        c_Dir_pos);
-  mrbc_define_method(0, Dir_class, "pos=",       c_Dir_pos_eq);
   mrbc_define_method(0, Dir_class, "_f_readdir", c_Dir__f_readdir);
+  mrbc_define_method(0, Dir_class, "_f_rewinddir", c_Dir__f_rewinddir);
 }
 
