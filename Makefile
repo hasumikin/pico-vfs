@@ -30,7 +30,7 @@ TARGET    = $(BUILD_DIR)/bin/main
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS) build/mrb/app.c $(LIBMRUBY) $(LIBFATFS)
+$(TARGET): $(OBJECTS) $(LIBMRUBY) $(LIBFATFS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBFLAG) -lmruby -lfatfs -lm
 	@echo "Finished"
@@ -48,9 +48,9 @@ $(LIBFATFS): FORCE
 	cd lib/ff14b && make
 
 # OBJECTS
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(MRB)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(MRB) build/mrb/app.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -DMRBC_ALLOC_LIBC=1 -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1 $(INCFLAG) -c $< -o $@
+	$(CC) $(CFLAGS) -DMAX_SYMBOLS_COUNT=1000 -DMRBC_ALLOC_LIBC=1 -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1 $(INCFLAG) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 # MRB

@@ -1,4 +1,7 @@
 class OS
+
+  ENV = {}
+
   class Dir
     class << self
       def glob(pattern, flags = 0, base: nil, sort: true)
@@ -30,9 +33,25 @@ class OS
       end
     end
 
+    def initialize(path)
+      @dir = VFS::Dir.new(path)
+    end
+
+    def path
+      @dir.fullpath
+    end
+
+    def close
+      if @dir.close
+        @dir = nil
+      else
+        raise RuntimeError.new "Unhandled error happened @ dir_close"
+      end
+    end
+
     def each(&block)
       while true do
-        if filename = self._f_readdir("/")
+        if filename = @dir.read("/")
           block.call(filename)
         else
           break
@@ -41,7 +60,7 @@ class OS
     end
 
     def rewind
-      self._f_rewinddir
+      @dir.f_rewinddir
       self
     end
   end

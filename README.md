@@ -10,8 +10,18 @@ Target is RP2040 so far
 require "vfs"
 require "fat"
 
-fat = FAT.new() # to use flash
-VFS.mount(fat, "/")
+driver = FAT.new("0") # "0" represents a logical drive
+VFS.mount(driver, "/")
+
+dir = Dir.new("/home") #=> Dir
+# internally splits path into "/" and "home",
+## the former is drive, the latter is pathname in the drive
+
+dir.each do |fname|
+  puts fname
+end
+
+dif.close
 ```
 
 ### SD card
