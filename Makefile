@@ -5,7 +5,7 @@ SRC_DIR   = src
 BUILD_DIR = build
 OBJ_DIR   = $(BUILD_DIR)/obj
 LDFLAGS  +=
-SOURCES  := $(wildcard $(SRC_DIR)/**/*.c) $(SRC_DIR)/main.c
+SOURCES  := $(wildcard $(SRC_DIR)/**/*.c) $(wildcard $(SRC_DIR)/**/**/*.c) $(SRC_DIR)/main.c
 OBJECTS  := $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 LIBMRUBY  = ./lib/picoruby/build/host/lib/libmruby.a

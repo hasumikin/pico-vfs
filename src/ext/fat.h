@@ -1,5 +1,5 @@
-#ifndef _DIR_H
-#define _DIR_H
+#ifndef _FAT_H
+#define _FAT_H
 
 #include <mrubyc.h>
 
@@ -7,11 +7,12 @@
 extern "C" {
 #endif
 
-void mrbc_init_class_Dir(void);
+void mrbc_init_class_FAT(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _DIR_H */
+#endif /* _FAT_H */
+
 

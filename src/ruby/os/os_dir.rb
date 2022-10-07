@@ -22,14 +22,24 @@ class OS
 
       def chdir(path)
         # block_given? ? object : 0
+        _pwd = pwd
+        VFS::Dir.chdir(path)
+        if block_given?
+          result = yield
+          VFS::Dir.chdir(_pwd)
+          result
+        else
+          0
+        end
       end
 
       def pwd
-        # String
+        OS::ENV["PWD"]
       end
 
       def mkdir(path, mode = 0777)
-        # 0
+        VFS::Dir.mkdir(path, mode)
+        return 0
       end
     end
 
@@ -60,7 +70,7 @@ class OS
     end
 
     def rewind
-      @dir.f_rewinddir
+      @dir.rewind
       self
     end
   end

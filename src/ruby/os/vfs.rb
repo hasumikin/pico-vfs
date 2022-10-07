@@ -5,36 +5,33 @@ class VFS
   class << self
     def mount(driver, mountpoint)
       mountpoint << "/" unless mountpoint.end_with?("/")
-      if _volume_index(mountpoint)
+      if volume_index(mountpoint)
         raise RuntimeError.new "Mountpoint `#{mountpoint}` already exists"
       end
       unless mountpoint[0] == '/'
         raise ArgumentError.new "Mountpoint must start with `/`"
       end
+      driver.mount(mountpoint) # It raises if error
       VOLUMES << { driver: driver, mountpoint: mountpoint }
-      if VOLUMES.count == 1
-        chdir("/")
-      end
     end
 
-    def unmount(mountpoint)
+    def unmount(driver)
+      mountpoint = driver.mountpoint
       mountpoint << "/" unless mountpoint.end_with?("/")
-      unless index = _volume_index(mountpoint)
+      unless index = volume_index(mountpoint)
         raise "Mountpoint `#{mountpoint}` doesn't exist"
       end
       if OS::ENV["PWD"].start_with?(mountpoint)
         raise "Can't unmount where you are"
       end
+      driver.unmount
       VOLUMES.delete_at index
       if VOLUMES.empty?
         OS::ENV["PWD"] = nil
       end
     end
 
-    def chdir(dir)
-      path = sanitize(dir)
-      OS::ENV["PWD"] = path
-    end
+    # private
 
     def sanitize(path)
       dirs = case path
@@ -80,10 +77,13 @@ class VFS
       [volume, sanitized_path[volume[:mountpoint].length, 255]]
     end
 
-    # private
-
-    def _volume_index(mountpoint)
-      VOLUMES.index { |v| v[:mountpoint] == mountpoint }
+    def volume_index(mountpoint)
+      # mruby/c doesn't have Array#any?
+      # mruby/c's Array#index doesn't take block argument
+      VOLUMES.each_with_index do |v, i|
+        return i if v[:mountpoint] == mountpoint
+      end
+      nil
     end
 
   end
@@ -94,20 +94,57 @@ class VFS
       volume, _path = VFS.split(sanitized_path)
       @fullpath = "#{volume[:mountpoint]}#{_path}"
       @driver = volume[:driver]
-      @dir = @driver.dir_new(_path)
+      @_dir = @driver.dir_new(_path)
       #      ^^^^^^^ FAT::Dir#dir_new
     end
 
     attr_reader :fullpath
 
     def close
-      @dir.close
+      @_dir.close
     end
 
     def read(path)
-      @dir.read
+      @_dir.read
     end
 
+    def chdir(dir)
+      sanitized_path = VFS.sanitize(dir)
+      volume, _path = VFS.split(sanitized_path)
+      volume[:driver].chdir(_path)
+      OS::ENV["PWD"] = sanitized_path
+    end
+
+    def mkdir(path, mode = 0777)
+      sanitized_path = VFS.sanitize(path)
+      volume, _path = VFS.split(sanitized_path)
+      volume[:driver].class::Dir.mkdir(_path, mode)
+    end
+
+  end
+
+  class File
+    def initialize(path, mode)
+      sanitized_path = VFS.sanitize(path)
+      volume, _path = VFS.split(sanitized_path)
+      @fullpath = "#{volume[:mountpoint]}#{_path}"
+      @driver = volume[:driver]
+      @_file = @driver.file_new(_path, mode)
+    end
+
+    def each_line(block)
+      while line = @_file.gets(235) do
+        block.call line
+      end
+    end
+
+    def puts(line)
+      @_file.puts(line)
+    end
+
+    def close
+      @_file.close
+    end
   end
 
 end

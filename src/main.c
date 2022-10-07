@@ -7,11 +7,14 @@
 #include <picorbc.h>
 #include <ff.h>
 
-#include "ext/fat_dir.h"
+#include "ext/fat.h"
+#include "ext/fat/dir.h"
+#include "ext/fat/file.h"
 
 #include "../build/mrb/vfs.c"
 #include "../build/mrb/fat.c"
 #include "../build/mrb/os_dir.c"
+#include "../build/mrb/os_file.c"
 #include "../build/mrb/app.c"
 
 #ifndef HEAP_SIZE
@@ -48,7 +51,10 @@ main(void)
   load_model(vfs);
   load_model(fat);
   load_model(os_dir);
-  mrbc_init_class_Dir();
+  load_model(os_file);
+  mrbc_init_class_FAT();
+  mrbc_init_class_FAT_Dir();
+  mrbc_init_class_FAT_File();
   mrbc_create_task(app, 0);
   mrbc_run();
   return 0;
