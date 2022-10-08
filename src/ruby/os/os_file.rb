@@ -14,8 +14,22 @@ class OS
       @file.each_line(block)
     end
 
-    def puts(line)
-      @file.puts(line)
+    def puts(*lines)
+      lines.each do |line|
+        @file.puts(line)
+      end
+    end
+
+    def putc(ch)
+      case ch.class
+      when Integer
+        @file.putc(ch)
+      when String
+        @file.putc(ch[0].ord)
+      else
+        @file.putc(ch.to_i)
+      end
+      ch
     end
 
     def close

@@ -140,6 +140,14 @@ class VFS
 
     def puts(line)
       @_file.puts(line)
+      if @feed == :crlf
+        @_file.putc 13 # "\r"
+      end
+      @_file.putc 10   # "\n"
+    end
+
+    def putc(ch)
+      @_file.putc(ch)
     end
 
     def close

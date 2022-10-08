@@ -14,13 +14,13 @@ p dir
 dir.each do |f|
   puts f
 end
-file = File.open("myfile.txt", "w+")
-file.puts "Hello!"
+file = File.open("test/myfile.txt", "w+")
+file.puts "Hello!","World"
 file.close
-file = File.open("myfile.txt", "r")
+file = File.open("test/myfile.txt", "r")
 lineno = 1
 file.each_line do |line|
-  puts "#{lineno}: `#{line}`"
+  puts line
   lineno += 1
 end
 dir.close
