@@ -94,36 +94,6 @@ c_rewind(struct VM *vm, mrbc_value v[], int argc)
   f_rewinddir(dp);
 }
 
-static void
-c_chdir(struct VM *vm, mrbc_value v[], int argc)
-{
-  FRESULT res;
-  res = f_chdir((const TCHAR *)GET_STRING_ARG(1));
-}
-
-static void
-c_mkdir(struct VM *vm, mrbc_value v[], int argc)
-{
-  DIR *dp = (DIR *)v->instance->data;
-  FRESULT res = f_mkdir((const TCHAR *)GET_STRING_ARG(1));
-  switch (res) {
-    case FR_OK:
-      break;
-    case FR_NO_PATH:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError), // Errno::ENOENT
-        "Not a directory @ dir_mkdir"
-      );
-      break;
-    default:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError),
-        "Unhandled error happened @ dir_mkdir"
-      );
-      return;
-  }
-}
-
 void
 mrbc_init_class_FAT_Dir(void)
 {
@@ -137,7 +107,5 @@ mrbc_init_class_FAT_Dir(void)
   mrbc_define_method(0, class_FAT_Dir, "close",  c_close);
   mrbc_define_method(0, class_FAT_Dir, "read",   c_read);
   mrbc_define_method(0, class_FAT_Dir, "rewind", c_rewind);
-  mrbc_define_method(0, class_FAT_Dir, "chdir", c_chdir);
-  mrbc_define_method(0, class_FAT_Dir, "mkdir",  c_mkdir);
 }
 

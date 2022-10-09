@@ -15,11 +15,11 @@ class FAT
     @fatfs = nil
   end
 
-  def dir_new(path)
+  def open_dir(path)
     FAT::Dir.new("#{@prefix}#{path}")
   end
 
-  def file_new(path, mode)
+  def open_file(path, mode)
     FAT::File.new("#{@prefix}#{path}", mode)
   end
 
@@ -27,7 +27,11 @@ class FAT
     # FatFs where FF_STR_VOLUME_ID == 2 configured
     # calls f_chdrive internally in f_chdir.
     # This is the reason of passing also @prefix
-    FAT::Dir.chdir("#{@prefix}#{path}")
+    FAT._chdir("#{@prefix}#{path}")
+  end
+
+  def mkdir(path, mode)
+    FAT._mkdir("#{@prefix}#{path}", mode)
   end
 
   class Dir

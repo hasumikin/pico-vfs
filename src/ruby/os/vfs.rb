@@ -31,7 +31,27 @@ class VFS
       end
     end
 
+    def chdir(dir)
+      sanitized_path = VFS.sanitize(dir)
+      volume, _path = VFS.split(sanitized_path)
+      volume[:driver].chdir(_path)
+      OS::ENV["PWD"] = sanitized_path
+    end
+
+    def pwd
+      OS::ENV["PWD"]
+    end
+
+    def mkdir(path, mode = 0777)
+      volume, _path = VFS.sanitize_and_split(path)
+      volume[:driver].mkdir(_path, mode)
+    end
+
     # private
+
+    def sanitize_and_split(path)
+      split(sanitize path)
+    end
 
     def sanitize(path)
       dirs = case path
@@ -79,7 +99,7 @@ class VFS
 
     def volume_index(mountpoint)
       # mruby/c doesn't have Array#any?
-      # mruby/c's Array#index doesn't take block argument
+      # also, mruby/c's Array#index doesn't take block argument
       VOLUMES.each_with_index do |v, i|
         return i if v[:mountpoint] == mountpoint
       end
@@ -89,69 +109,16 @@ class VFS
   end
 
   class Dir
-    def initialize(path)
-      sanitized_path = VFS.sanitize(path)
-      volume, _path = VFS.split(sanitized_path)
-      @fullpath = "#{volume[:mountpoint]}#{_path}"
-      @driver = volume[:driver]
-      @_dir = @driver.dir_new(_path)
-      #      ^^^^^^^ FAT::Dir#dir_new
+    def self.open(path)
+      volume, _path = VFS.sanitize_and_split(path)
+      volume[:driver].open_dir(_path)
     end
-
-    attr_reader :fullpath
-
-    def close
-      @_dir.close
-    end
-
-    def read(path)
-      @_dir.read
-    end
-
-    def chdir(dir)
-      sanitized_path = VFS.sanitize(dir)
-      volume, _path = VFS.split(sanitized_path)
-      volume[:driver].chdir(_path)
-      OS::ENV["PWD"] = sanitized_path
-    end
-
-    def mkdir(path, mode = 0777)
-      sanitized_path = VFS.sanitize(path)
-      volume, _path = VFS.split(sanitized_path)
-      volume[:driver].class::Dir.mkdir(_path, mode)
-    end
-
   end
 
   class File
-    def initialize(path, mode)
-      sanitized_path = VFS.sanitize(path)
-      volume, _path = VFS.split(sanitized_path)
-      @fullpath = "#{volume[:mountpoint]}#{_path}"
-      @driver = volume[:driver]
-      @_file = @driver.file_new(_path, mode)
-    end
-
-    def each_line(block)
-      while line = @_file.gets(235) do
-        block.call line
-      end
-    end
-
-    def puts(line)
-      @_file.puts(line)
-      if @feed == :crlf
-        @_file.putc 13 # "\r"
-      end
-      @_file.putc 10   # "\n"
-    end
-
-    def putc(ch)
-      @_file.putc(ch)
-    end
-
-    def close
-      @_file.close
+    def self.open(path, mode)
+      volume, _path = VFS.sanitize_and_split(path)
+      volume[:driver].open_file(_path, mode)
     end
   end
 

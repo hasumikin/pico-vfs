@@ -23,10 +23,10 @@ class OS
       def chdir(path)
         # block_given? ? object : 0
         _pwd = pwd
-        VFS::Dir.chdir(path)
+        VFS.chdir(path)
         if block_given?
           result = yield
-          VFS::Dir.chdir(_pwd)
+          VFS.chdir(_pwd)
           result
         else
           0
@@ -34,17 +34,17 @@ class OS
       end
 
       def pwd
-        OS::ENV["PWD"]
+        VFS.pwd
       end
 
       def mkdir(path, mode = 0777)
-        VFS::Dir.mkdir(path, mode)
+        VFS.mkdir(path, mode)
         return 0
       end
     end
 
     def initialize(path)
-      @dir = VFS::Dir.new(path)
+      @dir = VFS::Dir.open(path)
     end
 
     def path
