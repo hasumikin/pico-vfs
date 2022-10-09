@@ -18,22 +18,22 @@ class OS
 
     def puts(*lines)
       lines.each do |line|
-        @file.puts(line)
+        @file.write line
         if @feed == :crlf
-          @file.putc 13 # "\r"
+          @file.write "\r"
         end
-        @file.putc 10   # "\n"
+        @file.write "\n"
       end
     end
 
     def putc(ch)
       case ch.class
       when Integer
-        @file.putc(ch)
+        @file.write ch.chr
       when String
-        @file.putc(ch[0].ord)
+        @file.write ch[0]
       else
-        @file.putc(ch.to_i)
+        @file.write ch.to_i.chr
       end
       ch
     end

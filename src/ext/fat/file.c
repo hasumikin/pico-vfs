@@ -79,12 +79,23 @@ c_puts(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 static void
-c_putc(mrbc_vm *vm, mrbc_value v[], int argc)
+c_write(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   (v[0]).obj->ref_count++;
   (v[0]).obj->ref_count++;
   FIL *fp = (FIL *)v->instance->data;
-  if (f_putc((const TCHAR *)GET_INT_ARG(1), fp) < 0) {
+  const char *buff = GET_STRING_ARG(1);
+  UINT btw = strlen(buff);
+  UINT bw;
+  FRESULT res;
+  res = f_write(fp, (const void *)buff, btw, &bw);
+  switch (res) {
+    case FR_OK:
+      SET_TRUE_RETURN();
+      break;
+    default:
+      SET_NIL_RETURN();
+      break;
     // error
   }
 }
@@ -108,7 +119,7 @@ mrbc_init_class_FAT_File(void)
   mrbc_define_method(0, class_FAT_File, "new", c_new);
   mrbc_define_method(0, class_FAT_File, "gets", c_gets);
   mrbc_define_method(0, class_FAT_File, "puts", c_puts);
-  mrbc_define_method(0, class_FAT_File, "putc", c_putc);
+  mrbc_define_method(0, class_FAT_File, "write", c_write);
   mrbc_define_method(0, class_FAT_File, "close", c_close);
 }
 
