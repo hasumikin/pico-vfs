@@ -38,6 +38,10 @@ class OS
       ch
     end
 
+    def printf(farmat, *args)
+      puts sprintf(farmat, *args)
+    end
+
     def close
       @file.close
     end

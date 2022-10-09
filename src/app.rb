@@ -16,6 +16,7 @@ dir.each do |f|
 end
 file = File.open("test/myfile.txt", "w+")
 file.puts "Hello!","World"
+file.printf "%d %s", 5, "Ruby"
 file.close
 file = File.open("test/myfile.txt", "r")
 lineno = 1
