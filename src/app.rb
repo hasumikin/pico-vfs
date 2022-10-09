@@ -17,11 +17,17 @@ end
 file = File.open("test/myfile.txt", "w+")
 file.puts "Hello!","World"
 file.printf "%d %s", 5, "Ruby"
+file.write "%d %s", "Ruby"
 file.close
 file = File.open("test/myfile.txt", "r")
-lineno = 1
-file.each_line do |line|
-  puts line
-  lineno += 1
-end
+#lineno = 1
+#file.each_line do |line|
+#  puts line
+#  lineno += 1
+#end
+#file.rewind
+#puts file.gets
+#file.seek 3
+#puts file.gets
+p file.read()
 dir.close
