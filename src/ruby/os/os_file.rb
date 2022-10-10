@@ -1,5 +1,8 @@
 class OS
   class File
+
+    CHUNK_SIZE = 127
+
     class << self
       def open(path, mode = "r")
         self.new(path, mode)
@@ -8,11 +11,10 @@ class OS
 
     def initialize(path, mode = "r")
       @file = VFS::File.open(path, mode)
-      @initial_pos = @file._tell
     end
 
     def tell
-      @file._tell - @initial_pos
+      @file.tell
     end
     alias pos tell
 
@@ -26,14 +28,68 @@ class OS
     end
 
     def each_line(&block)
-      while line = @file.gets(235) do
+      while line = gets do
         block.call line
       end
     end
 
-    # TODO: get(limit, chomp: false) when PicoRuby compiler implements kargs
-    def gets
-      @file.gets(235)
+    # TODO: get(limit, chomp: false) when PicoRuby implements kargs
+    def gets(*args)
+      case args.count
+      when 0
+        rs = "\n"
+        limit = nil
+      when 1
+        if args[0].is_a?(Integer)
+          rs = "\n"
+          limit = args[0]
+        else
+          rs = args[0]
+          limit = nil
+        end
+      when 2
+        rs = args[0].to_s
+        limit = args[1].to_i
+      else
+        raies ArgumentError.new("wrong number of arguments (expected 0..2)")
+      end
+      result = ""
+      chunk_size = CHUNK_SIZE
+      initial_pos = self.tell
+      rs_adjust = rs.length - 1
+      if limit
+        (limit / chunk_size).times do
+          if chunk = @file.read(limit)
+            result << chunk
+          end
+        end
+        if (chunk = @file.read(limit % chunk_size))
+          result << chunk
+        end
+        if pos = result.index(rs)
+          result = result[0, pos + 1 + rs_adjust]
+        end
+      else
+        index_at = 0
+        while chunk = @file.read(chunk_size) do
+          result << chunk
+          if pos = result.index(rs, [index_at - rs_adjust, 0].max)
+            result = result[0, pos + 1 + rs_adjust]
+            break
+          end
+          index_at += chunk_size
+        end
+      end
+      if result.length == 0
+        return nil
+      else
+        self.seek(initial_pos + result.length)
+        return result
+      end
+    end
+
+    def eof?
+      @file.eof?
     end
 
     def read(length = nil, outbuf = "")

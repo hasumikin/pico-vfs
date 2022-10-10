@@ -50,7 +50,7 @@ c_new(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 static void
-c__tell(mrbc_vm *vm, mrbc_value v[], int argc)
+c_tell(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   FIL *fp = (FIL *)v->instance->data;
   FSIZE_t pos = f_tell(fp);
@@ -66,7 +66,7 @@ c_seek(mrbc_vm *vm, mrbc_value v[], int argc)
   res = f_lseek(fp, ofs);
   switch (res) {
     case FR_OK:
-      SET_INT_RETURN(ofs);
+      SET_INT_RETURN(0);
       break;
     default:
       SET_NIL_RETURN();
@@ -76,27 +76,13 @@ c_seek(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 static void
-c_gets(mrbc_vm *vm, mrbc_value v[], int argc)
+c_eof_eq(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   FIL *fp = (FIL *)v->instance->data;
-  int len = GET_INT_ARG(1);
-  TCHAR buff[len];
-  if (f_gets(buff, len, fp)) {
-    mrbc_value value = mrbc_string_new_cstr(vm, (const char *)buff);
-    SET_RETURN(value);
+  if (f_eof(fp) == 0) {
+    SET_FALSE_RETURN();
   } else {
-    SET_NIL_RETURN();
-  }
-}
-
-static void
-c_puts(mrbc_vm *vm, mrbc_value v[], int argc)
-{
-  FIL *fp = (FIL *)v->instance->data;
-  if (f_puts((const TCHAR *)GET_STRING_ARG(1), fp) < 0) {
-    // error
-  } else {
-    SET_NIL_RETURN();
+    SET_TRUE_RETURN();
   }
 }
 
@@ -111,7 +97,7 @@ c_read(mrbc_vm *vm, mrbc_value v[], int argc)
   switch (res) {
     case FR_OK:
       if (0 < br) {
-        buff[br + 1] = '\0';
+        buff[br] = '\0';
         mrbc_value value = mrbc_string_new_cstr(vm, (const char *)buff);
         SET_RETURN(value);
       } else {
@@ -161,9 +147,9 @@ mrbc_init_class_FAT_File(void)
   mrbc_class *class_FAT_File = v->cls;
 
   mrbc_define_method(0, class_FAT_File, "new", c_new);
-  mrbc_define_method(0, class_FAT_File, "_tell", c__tell);
+  mrbc_define_method(0, class_FAT_File, "tell", c_tell);
   mrbc_define_method(0, class_FAT_File, "seek", c_seek);
-  mrbc_define_method(0, class_FAT_File, "gets", c_gets);
+  mrbc_define_method(0, class_FAT_File, "eof?", c_eof_eq);
   mrbc_define_method(0, class_FAT_File, "read", c_read);
   mrbc_define_method(0, class_FAT_File, "write", c_write);
   mrbc_define_method(0, class_FAT_File, "close", c_close);
