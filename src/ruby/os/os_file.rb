@@ -8,7 +8,13 @@ class OS
 
     def initialize(path, mode = "r")
       @file = VFS::File.open(path, mode)
+      @initial_pos = @file._tell
     end
+
+    def tell
+      @file._tell - @initial_pos
+    end
+    alias pos tell
 
     # TODO seek(pos, whence = OS::SEEK_SET)
     def seek(pos)

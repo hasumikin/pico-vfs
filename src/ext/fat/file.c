@@ -50,6 +50,14 @@ c_new(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 static void
+c__tell(mrbc_vm *vm, mrbc_value v[], int argc)
+{
+  FIL *fp = (FIL *)v->instance->data;
+  FSIZE_t pos = f_tell(fp);
+  SET_INT_RETURN(pos);
+}
+
+static void
 c_seek(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   FIL *fp = (FIL *)v->instance->data;
@@ -153,6 +161,7 @@ mrbc_init_class_FAT_File(void)
   mrbc_class *class_FAT_File = v->cls;
 
   mrbc_define_method(0, class_FAT_File, "new", c_new);
+  mrbc_define_method(0, class_FAT_File, "_tell", c__tell);
   mrbc_define_method(0, class_FAT_File, "seek", c_seek);
   mrbc_define_method(0, class_FAT_File, "gets", c_gets);
   mrbc_define_method(0, class_FAT_File, "read", c_read);
