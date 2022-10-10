@@ -52,8 +52,6 @@ c_new(mrbc_vm *vm, mrbc_value v[], int argc)
 static void
 c_seek(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  (v[0]).obj->ref_count++;
-  (v[0]).obj->ref_count++;
   FIL *fp = (FIL *)v->instance->data;
   FSIZE_t ofs = (FSIZE_t)GET_INT_ARG(1);
   FRESULT res;
@@ -72,8 +70,6 @@ c_seek(mrbc_vm *vm, mrbc_value v[], int argc)
 static void
 c_gets(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  (v[0]).obj->ref_count++;
-  (v[0]).obj->ref_count++;
   FIL *fp = (FIL *)v->instance->data;
   int len = GET_INT_ARG(1);
   TCHAR buff[len];
@@ -88,8 +84,6 @@ c_gets(mrbc_vm *vm, mrbc_value v[], int argc)
 static void
 c_puts(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  (v[0]).obj->ref_count++;
-  (v[0]).obj->ref_count++;
   FIL *fp = (FIL *)v->instance->data;
   if (f_puts((const TCHAR *)GET_STRING_ARG(1), fp) < 0) {
     // error
@@ -101,8 +95,6 @@ c_puts(mrbc_vm *vm, mrbc_value v[], int argc)
 static void
 c_read(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  (v[0]).obj->ref_count++;
-  (v[0]).obj->ref_count++;
   FIL *fp = (FIL *)v->instance->data;
   UINT btr = GET_INT_ARG(1);
   char buff[btr + 1];
@@ -127,8 +119,6 @@ c_read(mrbc_vm *vm, mrbc_value v[], int argc)
 static void
 c_write(mrbc_vm *vm, mrbc_value v[], int argc)
 {
-  (v[0]).obj->ref_count++;
-  (v[0]).obj->ref_count++;
   FIL *fp = (FIL *)v->instance->data;
   const char *buff = GET_STRING_ARG(1);
   UINT btw = strlen(buff);
