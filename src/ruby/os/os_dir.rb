@@ -23,8 +23,10 @@ class OS
       end
 
       def empty?(path)
-        # TODO
-        raise "Not implemented"
+        dir = self.open(path)
+        res = dir.read
+        dir.close
+        res ? false : true
       end
       alias zero? empty?
 
