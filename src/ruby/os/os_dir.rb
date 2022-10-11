@@ -32,6 +32,7 @@ class OS
       def pwd
         VFS.pwd
       end
+      alias getwd pwd
 
       def mkdir(path, mode = 0777)
         VFS.mkdir(path, mode)
@@ -40,6 +41,8 @@ class OS
       def unlink(path)
         VFS.unlink(path)
       end
+      alias delete unlink
+      alias rmdir unlink
     end
 
     def initialize(path)

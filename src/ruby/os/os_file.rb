@@ -42,6 +42,7 @@ class OS
     def seek(pos)
       @file.seek(pos)
     end
+    alias pos= seek
 
     def rewind
       @file.seek(0)
