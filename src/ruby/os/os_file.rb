@@ -8,6 +8,18 @@ class OS
         self.new(path, mode)
       end
 
+      def exist?(name)
+        VFS.exist?(name)
+      end
+
+      def directory?(name)
+        VFS.directory?(name)
+      end
+
+      def file?(name)
+        !VFS.directory?(name)
+      end
+
       def unlink(*filenames)
         count = 0
         filenames.each do |name|

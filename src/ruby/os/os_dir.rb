@@ -8,14 +8,13 @@ class OS
         # block_given? ? nil : [String]
       end
 
-      def exist?(name)
-        # bool
+      def exist?(path)
+        VFS.directory?(path)
       end
 
       def empty?(path)
         # bool
       end
-
 
       def chdir(path)
         # block_given? ? object : 0

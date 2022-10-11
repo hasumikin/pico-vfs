@@ -53,6 +53,32 @@ c__unlink(mrbc_vm *vm, mrbc_value v[], int argc)
   SET_INT_RETURN(0);
 }
 
+static void
+c__exist_eq(mrbc_vm *vm, mrbc_value v[], int argc)
+{
+  TCHAR *path = (TCHAR *)GET_STRING_ARG(1);
+  FILINFO fno;
+  FRESULT res = f_stat(path, &fno);
+  if (res == FR_OK) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
+  }
+}
+
+static void
+c__directory_eq(mrbc_vm *vm, mrbc_value v[], int argc)
+{
+  TCHAR *path = (TCHAR *)GET_STRING_ARG(1);
+  FILINFO fno;
+  FRESULT res = f_stat(path, &fno);
+  if (res == FR_OK && (fno.fattrib & AM_DIR)) {
+    SET_TRUE_RETURN();
+  } else {
+    SET_FALSE_RETURN();
+  }
+}
+
 void
 mrbc_init_class_FAT(void)
 {
@@ -62,6 +88,8 @@ mrbc_init_class_FAT(void)
   mrbc_define_method(0, class_FAT, "_chdir", c__chdir);
   mrbc_define_method(0, class_FAT, "_mkdir", c__mkdir);
   mrbc_define_method(0, class_FAT, "_unlink", c__unlink);
+  mrbc_define_method(0, class_FAT, "_exist?", c__exist_eq);
+  mrbc_define_method(0, class_FAT, "_directory?", c__directory_eq);
 }
 
 #define PREPARE_EXCEPTION(message) (sprintf(buff, "%s @ %s", message, func))
