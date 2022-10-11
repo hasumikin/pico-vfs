@@ -4,6 +4,16 @@ class OS
 
   class Dir
     class << self
+      def open(path)
+        if block_given?
+          dir = self.new(path)
+          yield dir
+          dir.close
+        else
+          self.new(path)
+        end
+      end
+
       def glob(pattern, flags = 0, base: nil, sort: true)
         # block_given? ? nil : [String]
       end
@@ -13,8 +23,10 @@ class OS
       end
 
       def empty?(path)
-        # bool
+        # TODO
+        raise "Not implemented"
       end
+      alias zero? empty?
 
       def chdir(path)
         # block_given? ? object : 0
@@ -58,13 +70,13 @@ class OS
     end
 
     def each(&block)
-      while true do
-        if filename = @dir.read("/")
-          block.call(filename)
-        else
-          break
-        end
+      while filename = self.read do
+        block.call(filename)
       end
+    end
+
+    def read
+      @dir.read("/")
     end
 
     def rewind

@@ -5,7 +5,13 @@ class OS
 
     class << self
       def open(path, mode = "r")
-        self.new(path, mode)
+        if block_given?
+          file = self.new(path, mode)
+          yield file
+          file.close
+        else
+          self.new(path, mode)
+        end
       end
 
       def exist?(name)
