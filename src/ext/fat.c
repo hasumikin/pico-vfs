@@ -13,13 +13,8 @@ c__mount(struct VM *vm, mrbc_value v[], int argc)
   FATFS *fs = (FATFS *)fatfs.instance->data;
   FRESULT res;
   res = f_mount(fs, (const TCHAR *)GET_STRING_ARG(1), 1);
-  if (res == FR_OK) {
-    SET_RETURN(fatfs);
-  } else {
-    char buff[100];
-    sprintf(buff, "Mounting FAT volume failed (error code: %d)", res);
-    mrbc_raise(vm, MRBC_CLASS(RuntimeError), buff);
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_mount");
+  SET_INT_RETURN(0);
 }
 
 static void
@@ -27,11 +22,8 @@ c__unmount(struct VM *vm, mrbc_value v[], int argc)
 {
   FRESULT res;
   res = f_mount(0, (const TCHAR *)GET_STRING_ARG(1), 0);
-  if (res != FR_OK) {
-    char buff[100];
-    sprintf(buff, "Unmounting FAT volume failed (error code: %d)", res);
-    mrbc_raise(vm, MRBC_CLASS(RuntimeError), buff);
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_unmount");
+  SET_INT_RETURN(0);
 }
 
 static void
@@ -39,6 +31,8 @@ c__chdir(struct VM *vm, mrbc_value v[], int argc)
 {
   FRESULT res;
   res = f_chdir((const TCHAR *)GET_STRING_ARG(1));
+  mrbc_raise_iff_f_error(vm, res, "f_chdir");
+  SET_INT_RETURN(0);
 }
 
 
@@ -46,22 +40,17 @@ static void
 c__mkdir(struct VM *vm, mrbc_value v[], int argc)
 {
   FRESULT res = f_mkdir((const TCHAR *)GET_STRING_ARG(1));
-  switch (res) {
-    case FR_OK:
-      break;
-    case FR_NO_PATH:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError), // Errno::ENOENT
-        "Not a directory @ dir_mkdir"
-      );
-      break;
-    default:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError),
-        "Unhandled error happened @ dir_mkdir"
-      );
-      return;
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_mkdir");
+  SET_INT_RETURN(0);
+}
+
+static void
+c__unlink(mrbc_vm *vm, mrbc_value v[], int argc)
+{
+  TCHAR *path = (TCHAR *)GET_STRING_ARG(1);
+  FRESULT res = f_unlink(path);
+  mrbc_raise_iff_f_error(vm, res, "f_unlink");
+  SET_INT_RETURN(0);
 }
 
 void
@@ -72,4 +61,76 @@ mrbc_init_class_FAT(void)
   mrbc_define_method(0, class_FAT, "_unmount", c__unmount);
   mrbc_define_method(0, class_FAT, "_chdir", c__chdir);
   mrbc_define_method(0, class_FAT, "_mkdir", c__mkdir);
+  mrbc_define_method(0, class_FAT, "_unlink", c__unlink);
 }
+
+#define PREPARE_EXCEPTION(message) (sprintf(buff, "%s @ %s", message, func))
+
+void
+mrbc_raise_iff_f_error(mrbc_vm *vm, FRESULT res, const char *func)
+{
+  char buff[100];
+  switch (res) {
+    case FR_OK:
+      return;
+    case FR_DISK_ERR:
+      PREPARE_EXCEPTION("Unrecoverable hard error");
+      break;
+    case FR_INT_ERR:
+      PREPARE_EXCEPTION("Insanity is detected");
+      break;
+    case FR_NOT_READY:
+      PREPARE_EXCEPTION("Storage device not ready");
+      break;
+    case FR_NO_FILE:
+    case FR_NO_PATH:
+      PREPARE_EXCEPTION("No such file or directory");
+      break;
+    case FR_INVALID_NAME:
+      PREPARE_EXCEPTION("Invalid as a path name");
+      break;
+    case FR_DENIED:
+      PREPARE_EXCEPTION("Permission denied");
+      break;
+    case FR_EXIST:
+      PREPARE_EXCEPTION("File exists");
+      break;
+    case FR_INVALID_OBJECT:
+      PREPARE_EXCEPTION("Invalid object");
+      break;
+    case FR_WRITE_PROTECTED:
+      PREPARE_EXCEPTION("Write protected");
+      break;
+    case FR_INVALID_DRIVE:
+      PREPARE_EXCEPTION("Invalid drive number");
+      break;
+    case FR_NOT_ENABLED:
+      PREPARE_EXCEPTION("Drive not mouted");
+      break;
+    case FR_NO_FILESYSTEM:
+      PREPARE_EXCEPTION("No valid FAT volume found");
+      break;
+    case FR_MKFS_ABORTED:
+      PREPARE_EXCEPTION("Volume format could not start");
+      break;
+    case FR_TIMEOUT:
+      PREPARE_EXCEPTION("Timeout");
+      break;
+    case FR_LOCKED:
+      PREPARE_EXCEPTION("Object locked");
+      break;
+    case FR_NOT_ENOUGH_CORE:
+      PREPARE_EXCEPTION("No enough memory");
+      break;
+    case FR_TOO_MANY_OPEN_FILES:
+      PREPARE_EXCEPTION("Too many open files");
+      break;
+    case FR_INVALID_PARAMETER:
+      PREPARE_EXCEPTION("Invalid parameter");
+      break;
+    default:
+      PREPARE_EXCEPTION("This should not happen");
+  }
+  mrbc_raise(vm, MRBC_CLASS(RuntimeError), buff);
+}
+

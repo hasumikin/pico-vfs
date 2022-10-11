@@ -13,47 +13,23 @@ c_new(mrbc_vm *vm, mrbc_value v[], int argc)
   const TCHAR *path = (const TCHAR *)GET_STRING_ARG(1);
 
   res = f_stat(path, &fno);
-  switch (res) {
-    case FR_OK:
-      if ((fno.fattrib & AM_DIR) == 0) {
-        mrbc_raise(
-          vm, MRBC_CLASS(ArgumentError), // Errno::ENOTDIR in CRuby
-          "Not a directory @ dir_initialize"
-        );
-        return;
-      }
-      break;
-    case FR_INVALID_NAME:
-      /* FIXME: pathname "/" becomes INVALID, why? */
-      break;
-    case FR_NO_PATH:
-    case FR_NO_FILE:
-      mrbc_raise(
-        vm, MRBC_CLASS(ArgumentError), // Errno::ENOENT in CRuby
-        "No such file or directory @ dir_initialize"
-      );
-      return;
-    default:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError),
-        "Unhandled error happened @ f_stat"
-      );
-      return;
+  if (res != FR_INVALID_NAME) {
+    /* FIXME: pathname "0:" becomes INVALID, why? */
+    mrbc_raise_iff_f_error(vm, res, "f_stat");
+  }
+  if (res == FR_OK && (fno.fattrib & AM_DIR) == 0) {
+    mrbc_raise(
+      vm, MRBC_CLASS(RuntimeError), // Errno::ENOTDIR in CRuby
+      "Not a directory @ dir_initialize"
+    );
+    return;
   }
 
   mrbc_value dir = mrbc_instance_new(vm, v->cls, sizeof(DIR));
   DIR *dp = (DIR *)dir.instance->data;
   res = f_opendir(dp, path);
-  switch (res) {
-    case FR_OK:
-      SET_RETURN(dir);
-      break;
-    default:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError),
-        "Unhandled error happened @ f_opendir"
-      );
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_opendir");
+  SET_RETURN(dir);
 }
 
 static void
@@ -61,13 +37,8 @@ c_close(struct VM *vm, mrbc_value v[], int argc)
 {
   DIR *dp = (DIR *)v->instance->data;
   FRESULT res = f_closedir(dp);
-  switch (res) {
-    case FR_OK:
-      SET_TRUE_RETURN();
-      break;
-    default:
-      SET_FALSE_RETURN();
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_close");
+  SET_NIL_RETURN();
 }
 
 static void
@@ -78,9 +49,9 @@ c_read(struct VM *vm, mrbc_value v[], int argc)
   DIR *dp = (DIR *)v->instance->data;
   FILINFO fno;
   FRESULT res = f_readdir(dp, &fno);
-  if (res != FR_OK || fno.fname[0] == 0) {
+  mrbc_raise_iff_f_error(vm, res, "f_readdir");
+  if (fno.fname[0] == 0) {
     SET_NIL_RETURN();
-    return;
   } else {
     mrbc_value value = mrbc_string_new_cstr(vm, (const char *)(fno.fname));
     SET_RETURN(value);

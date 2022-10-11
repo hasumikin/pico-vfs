@@ -16,20 +16,17 @@ class OS
         # bool
       end
 
-      def unlink(*files)
-        # Integer
-      end
 
       def chdir(path)
         # block_given? ? object : 0
         _pwd = pwd
-        VFS.chdir(path)
         if block_given?
+          VFS.chdir(path)
           result = yield
           VFS.chdir(_pwd)
           result
         else
-          0
+          VFS.chdir(path)
         end
       end
 
@@ -39,7 +36,10 @@ class OS
 
       def mkdir(path, mode = 0777)
         VFS.mkdir(path, mode)
-        return 0
+      end
+
+      def unlink(path)
+        VFS.unlink(path)
       end
     end
 
@@ -52,11 +52,7 @@ class OS
     end
 
     def close
-      if @dir.close
-        @dir = nil
-      else
-        raise RuntimeError.new "Unhandled error happened @ dir_close"
-      end
+      @dir.close
     end
 
     def each(&block)
@@ -73,5 +69,6 @@ class OS
       @dir.rewind
       self
     end
+
   end
 end

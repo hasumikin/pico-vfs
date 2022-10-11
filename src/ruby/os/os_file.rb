@@ -7,6 +7,14 @@ class OS
       def open(path, mode = "r")
         self.new(path, mode)
       end
+
+      def unlink(*filenames)
+        count = 0
+        filenames.each do |name|
+          count += VFS.unlink(name)
+        end
+        return count
+      end
     end
 
     def initialize(path, mode = "r")
@@ -154,7 +162,6 @@ class OS
 
     def close
       @file.close
-      return nil
     end
   end
 end

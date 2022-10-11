@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "../fat.h"
 #include "file.h"
 
 #include <ff.h>
@@ -9,13 +10,12 @@ static void
 c_new(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   FRESULT res;
-  FILINFO fno;
   const TCHAR *path = (const TCHAR *)GET_STRING_ARG(1);
 
   mrbc_value _file = mrbc_instance_new(vm, v->cls, sizeof(FIL));
   FIL *fp = (FIL *)_file.instance->data;
   BYTE mode;
-  const char *mode_str = GET_STRING_ARG(2);
+  const char *mode_str = (const char *)GET_STRING_ARG(2);
   if (strcmp(mode_str, "r") == 0) {
     mode = FA_READ;
   } else if (strcmp(mode_str, "r+") == 0) {
@@ -36,17 +36,8 @@ c_new(mrbc_vm *vm, mrbc_value v[], int argc)
     // TODO raise
   }
   res = f_open(fp, path, mode);
-
-  switch (res) {
-    case FR_OK:
-      SET_RETURN(_file);
-      break;
-    default:
-      mrbc_raise(
-        vm, MRBC_CLASS(RuntimeError),
-        "Unhandled error happened @ f_open"
-      );
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_open");
+  SET_RETURN(_file);
 }
 
 static void
@@ -64,15 +55,8 @@ c_seek(mrbc_vm *vm, mrbc_value v[], int argc)
   FSIZE_t ofs = (FSIZE_t)GET_INT_ARG(1);
   FRESULT res;
   res = f_lseek(fp, ofs);
-  switch (res) {
-    case FR_OK:
-      SET_INT_RETURN(0);
-      break;
-    default:
-      SET_NIL_RETURN();
-      // TODO raise
-      break;
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_lseek");
+  SET_INT_RETURN(0);
 }
 
 static void
@@ -94,19 +78,13 @@ c_read(mrbc_vm *vm, mrbc_value v[], int argc)
   char buff[btr + 1];
   UINT br;
   FRESULT res = f_read(fp, buff, btr, &br);
-  switch (res) {
-    case FR_OK:
-      if (0 < br) {
-        buff[br] = '\0';
-        mrbc_value value = mrbc_string_new_cstr(vm, (const char *)buff);
-        SET_RETURN(value);
-      } else {
-        SET_NIL_RETURN();
-      }
-      break;
-    default:
-      // TODO raise
-      break;
+  mrbc_raise_iff_f_error(vm, res, "f_read");
+  if (0 < br) {
+    buff[br] = '\0';
+    mrbc_value value = mrbc_string_new_cstr(vm, (const char *)buff);
+    SET_RETURN(value);
+  } else {
+    SET_NIL_RETURN();
   }
 }
 
@@ -114,20 +92,13 @@ static void
 c_write(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   FIL *fp = (FIL *)v->instance->data;
-  const char *buff = GET_STRING_ARG(1);
+  const char *buff = (const char *)GET_STRING_ARG(1);
   UINT btw = strlen(buff);
   UINT bw;
   FRESULT res;
   res = f_write(fp, (const void *)buff, btw, &bw);
-  switch (res) {
-    case FR_OK:
-      SET_INT_RETURN(bw);
-      break;
-    default:
-      SET_NIL_RETURN();
-      // TODO raise
-      break;
-  }
+  mrbc_raise_iff_f_error(vm, res, "f_write");
+  SET_INT_RETURN(bw);
 }
 
 static void
@@ -136,6 +107,8 @@ c_close(mrbc_vm *vm, mrbc_value v[], int argc)
   FIL *fp = (FIL *)v->instance->data;
   FRESULT res;
   res = f_close(fp);
+  mrbc_raise_iff_f_error(vm, res, "f_close");
+  SET_NIL_RETURN();
 }
 
 void
