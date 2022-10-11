@@ -1,7 +1,7 @@
 CC         = gcc
 AR         = ar
 CFLAGS    += -g3 -O0 -Wall -Wpointer-arith
-MRBCFLAGS += -DMAX_SYMBOLS_COUNT=1000 -DMRBC_ALLOC_LIBC=1 -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1
+MRBCFLAGS += -DMAX_SYMBOLS_COUNT=1000 -DMRBC_INT64=1 -DMRBC_ALLOC_LIBC=1 -DMRBC_USE_MATH=1 -DMRBC_USE_HAL_POSIX=1
 SRC_DIR    = src
 BUILD_DIR  = build
 OBJ_DIR    = $(BUILD_DIR)/obj
@@ -35,7 +35,7 @@ all:
 debug:
 	DEBUG=yes $(MAKE) $(TARGET)
 
-$(TARGET): $(OBJECTS) $(LIBFATFS)
+$(TARGET): $(OBJECTS) $(LIBFATFS) $(MRB)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LIBFLAG) $(LDFLAGS)
 	@echo "Finished"
