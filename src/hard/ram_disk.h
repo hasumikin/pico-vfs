@@ -1,6 +1,8 @@
-
 #ifndef RAM_DISK_DEFINED
 #define RAM_DISK_DEFINED
+
+#include <ff.h>
+#include <diskio.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -7,6 +7,8 @@
 #include <picorbc.h>
 #include <ff.h>
 
+#include "hard/ram_disk.h"
+
 #include "ext/fat.h"
 #include "ext/fat/dir.h"
 #include "ext/fat/file.h"
